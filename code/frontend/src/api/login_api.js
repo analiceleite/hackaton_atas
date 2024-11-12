@@ -22,7 +22,7 @@ export const login = async (email, password) => {
 };
 
 export const logout = async () => {
-    const refreshToken = localStorage.getItem('user_refresh_token'); // Obtém o refresh token
+    const refreshToken = localStorage.getItem('user_refresh_token'); 
 
     console.log("Token de logout:", refreshToken);
 
