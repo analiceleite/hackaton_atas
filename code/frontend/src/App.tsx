@@ -1,25 +1,28 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { GlobalCss } from "./styles/styles"
+
+import LoginForm from './pages/login/loginForm';
+import EmailForm from './pages/login/emailForm';
+import ResetPassForm from './pages/login/resetPassForm';
+import Import from "./pages/import";
+import Support from "./pages/support";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <GlobalCss />
+      <div className='App'>
+        <Router>
+          <Routes>
+            <Route path="/" element={<LoginForm />} />
+            <Route path="/forgot-password" element={<EmailForm />} />
+            <Route path="/reset-password/:uid/:token/" element={<ResetPassForm />} />
+            <Route path="/import" element={<Import />} />
+            <Route path="/support" element={<Support />} />
+          </Routes>
+        </Router>
+      </div>
+    </>
   );
 }
 
