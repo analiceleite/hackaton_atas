@@ -4,14 +4,17 @@ import re
 import zipfile
 import PyPDF2
 import google.generativeai as genai
+import google.cloud as audio_to_text
 from dotenv import load_dotenv
 import os
 
 load_dotenv(dotenv_path='.env.dev')
 
-api_key = os.getenv('API_GEMINI')
+api_key_gemini = os.getenv('API_GEMINI')
 
-genai.configure(api_key=api_key)
+api_key_speak_to_text = os.getenv('API_SPEAK_TO_TEXT')
+
+genai.configure(api_key=api_key_gemini)
 
 def extrair_texto_pdf(request, pdf_file):
         # Usando PyPDF2 para extrair o texto do PDF
@@ -70,3 +73,18 @@ def extrair_arquivos_zip(request, zip_file):
         
         return extracted_files
     
+
+def trancrever_audio(request, audio_request):
+    cliente = audio_to_text.SpeechClient()
+
+    configuracao = audio_to_text.RecognitionConfig(
+        encoding=audio_to_text.RecognitionConfig.AudioEncoding.LINEAR16,  # Tipo de codificação (para WAV)
+        sample_rate_hertz=16000,                                   # Taxa de amostragem do áudio
+        language_code="pt-BR"                                     # Código de idioma (português brasileiro)
+    )
+
+    audio_file = audio_request.FILES.get('audio')
+    
+    audio = audio_to_text.RecognitionAudio(content=audio_file.read())
+
+    cliente.recognize(config=configuracao, audio=audio)
