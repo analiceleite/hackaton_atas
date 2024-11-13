@@ -1,78 +1,108 @@
 import React, { useState } from 'react';
-import { FaFileAlt } from 'react-icons/fa'; 
-import * as S from './styles'; 
+import { FaFileAlt } from 'react-icons/fa';
+import { ProcessData } from '../../api/ata_api';
+import * as S from './styles';
+import Popup from "../global/popup/index";
+import HistoryForm from '../history/index'; // Importe o HistoryForm
 
 const ImportForm = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [popupMessage, setPopupMessage] = useState('');
+  const [popupType, setPopupType] = useState('');
   const [files, setFiles] = useState({
-    planilhaFinal: null,
-    dependentes: null,
-    ferias: null,
-    horaExtra: null,
-    planoReclassi: null,
-    sindicatos: null,
+    ata: null,
+    audio: null,
   });
+
+  const [namesList, setNamesList] = useState([]);  
+  const [status, setStatus] = useState('');
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     setFiles((prev) => ({ ...prev, [name]: files[0] }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    const formData = new FormData();
-    const date = new Date().toLocaleString();
+    try {
+      const response = await ProcessData(files.ata, files.audio);
+      console.log('Response Status:', response.status); 
 
-    for (const key in files) {
-      if (files[key]) {
-        formData.append(key, files[key]);
+      if (response.status === 200) {
+        setNamesList(Object.entries(response.data.names)); // Armazena os nomes extraídos
+        setStatus(response.data.status); // Armazena o status da chamada
+        setFiles({ ata: null, audio: null });
+        setPopupMessage("Dados enviados com sucesso! Verifique o histórico para visualizar o log.");
+        setPopupType("success");
+        setPopupOpen(true);
+      } else {
+        throw new Error("Erro ao processar os dados");
       }
+    } catch (error) {
+      setPopupMessage('Um erro ocorreu no processamento dos dados.');
+      setPopupType('error');
+      setPopupOpen(true);
+    } finally {
+      setIsLoading(false);
     }
-
-    // Simular o salvamento no localstorage
-    const history = JSON.parse(localStorage.getItem('uploadHistory')) || [];
-    const newEntry = {
-      date,
-      files: Object.keys(files).map(key => (
-        files[key] ? { name: key, fileName: files[key].name } : null
-      )).filter(file => file !== null) // Filtra arquivos nulos
-    };
-
-    localStorage.setItem('uploadHistory', JSON.stringify([...history, newEntry]));
-
-    alert('Arquivos enviados com sucesso!');
   };
 
   const planilhas = [
-    { name: "ata", label: "Ata" },
-    { name: "audio", label: "Pasta de Áudios" },
+    { name: "ata", label: "Ata", accept: '.pdf' },
+    { name: "audio", label: "Pasta de Áudios", accept: '.zip' },
   ];
 
+  // Passa os dados para o HistoryForm
+  const uploadData = { namesList, status };
+
   return (
-    <S.FormContainer>
-      <S.Title>Upload de Dados</S.Title>
-      <S.Form onSubmit={handleSubmit}>
-        {planilhas.map((planilha, index) => (
-          <S.FormGroup key={index}>
-            <S.Input
-              type="file"
-              name={planilha.name}
-              id={planilha.name}
-              onChange={handleFileChange}
-              accept=".xlsx"
-            />
-            <S.FilePlaceholder
-              htmlFor={planilha.name}
-              className={files[planilha.name] ? 'filled' : ''}
-            >
-              <FaFileAlt style={{ marginRight: '8px', color: '#05A6CB' }} />
-              {files[planilha.name] ? files[planilha.name].name : planilha.label}
-            </S.FilePlaceholder>
-          </S.FormGroup>
-        ))}
-        <S.Button type="submit">Enviar Dados</S.Button>
-      </S.Form>
-    </S.FormContainer>
+    <S.Container>
+      <S.PopupWrapper>
+        <Popup
+          isOpen={popupOpen}
+          onClose={() => setPopupOpen(false)}
+          title={popupType === 'error' ? 'Erro!' : 'Sucesso!'}
+          message={popupMessage}
+          type={popupType}
+          footer={popupType}
+        />
+      </S.PopupWrapper>
+      
+      <S.Title>Upload de Arquivos</S.Title>
+      
+      <S.FormWrapper>
+        <S.FormContainer>
+          <S.Form onSubmit={handleSubmit}>
+            {planilhas.map((planilha, index) => (
+              <S.FormGroup key={index}>
+                <S.Input
+                  type="file"
+                  name={planilha.name}
+                  id={planilha.name}
+                  onChange={handleFileChange}
+                  accept={planilha.accept}
+                />
+                <S.FilePlaceholder
+                  htmlFor={planilha.name}
+                  className={files[planilha.name] ? 'filled' : ''}
+                >
+                  <FaFileAlt style={{ marginRight: '8px', color: '#05A6CB' }} />
+                  {files[planilha.name] ? files[planilha.name].name : planilha.label}
+                </S.FilePlaceholder>
+              </S.FormGroup>
+            ))}
+            <S.Button type="submit" disabled={isLoading}>
+              {isLoading ? "Enviando..." : "Enviar Dados"}
+            </S.Button>
+          </S.Form>
+        </S.FormContainer>
+
+        <HistoryForm uploadData={uploadData} />
+      </S.FormWrapper>
+    </S.Container>
   );
 };
 

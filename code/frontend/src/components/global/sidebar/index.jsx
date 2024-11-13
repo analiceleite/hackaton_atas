@@ -28,12 +28,7 @@ const Sidebar = () => {
                         </Link>
                         <Tooltip id="export-tooltip" place="right" content="Importar" />
                     </li>
-                    <li>
-                        <Link to="#" data-tooltip-id="historico-tooltip">
-                            <S.HistoricoIcon />
-                        </Link>
-                        <Tooltip id="historico-tooltip" place="right" content="Listagem" />
-                    </li>
+
                     <li>
                         <Link to="/support" data-tooltip-id="support-tooltip">
                             <S.SupportIcon />
