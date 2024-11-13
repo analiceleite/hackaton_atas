@@ -21,18 +21,36 @@ def extrair_texto_pdf(request, pdf_file):
         
 def retornar_lista_nomes(request, pdf_text):
     model = genai.GenerativeModel("gemini-1.5-flash")
-    prompt = f"In portuguese, make a only array pyhon formart all the names of people mentioned in the following text:\n\n{pdf_text}"
+    prompt = (
+        f"In Portuguese, make a dictionary in Python format with all the names of people mentioned "
+        f"and analyze the text to say if the feedback is positive, negative, or neutral, for each person. "
+        f"Return only the dictionary with no comments. Example: Paulo: [positive], Laura: [neutral], Amanda: [negative].\n\n{pdf_text}"
+    )
     response = model.generate_content(prompt)
+    print(response.text)
     return tratar_lista_nome(response.text)
+
+# def retornar_lista_feedback(request,lista_nomes):
     
    
 def tratar_lista_nome(text):
-    match = re.search(r'\[([^\]]+)\]', text)
-    if match:
-        nomes_str = match.group(1)
-        nomes = [nome.strip().strip('"').lower() for nome in nomes_str.split(',')]
-        return nomes
-    return []
+    try:
+        # Tentar converter a resposta em um dicionário válido
+        start = text.find("{")
+        end = text.rfind("}") + 1
+        dict_str = text[start:end]
+        
+        nome_feedback_dict = json.loads(dict_str)
+        
+        # Certificando que é um dicionário
+        if isinstance(nome_feedback_dict, dict):
+            return nome_feedback_dict
+        else:
+            return {}
+    
+    except Exception as e:
+        print(f"Erro ao processar a resposta: {e}")
+        return {}
 
 def extrair_arquivos_zip(request, zip_file):
     with zipfile.ZipFile(BytesIO(zip_file.read())) as zf:
