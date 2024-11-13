@@ -4,7 +4,6 @@ import re
 import zipfile
 import PyPDF2
 import google.generativeai as genai
-import google.cloud as audio_to_text
 from dotenv import load_dotenv
 import os
 
@@ -12,7 +11,7 @@ load_dotenv(dotenv_path='.env.dev')
 
 api_key_gemini = os.getenv('API_GEMINI')
 
-api_key_speak_to_text = os.getenv('API_SPEAK_TO_TEXT')
+# api_key_speak_to_text = os.getenv('API_SPEAK_TO_TEXT')
 
 genai.configure(api_key=api_key_gemini)
 
@@ -40,8 +39,7 @@ def retornar_lista_nomes(request, pdf_text):
     return tratar_lista_nome(response.text)
 
 # def retornar_lista_feedback(request,lista_nomes):
-    
-   
+
 def tratar_lista_nome(text):
     try:
         # Tentar converter a resposta em um dicionário válido
@@ -73,18 +71,44 @@ def extrair_arquivos_zip(request, zip_file):
         
         return extracted_files
     
+import azure.cognitiveservices.speech as speechsdk
+
+# import google.cloud as speechsdk
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
 def trancrever_audio(request, audio_request):
-    cliente = audio_to_text.SpeechClient()
-
-    configuracao = audio_to_text.RecognitionConfig(
-        encoding=audio_to_text.RecognitionConfig.AudioEncoding.LINEAR16,  # Tipo de codificação (para WAV)
-        sample_rate_hertz=16000,                                   # Taxa de amostragem do áudio
-        language_code="pt-BR"                                     # Código de idioma (português brasileiro)
-    )
 
     audio_file = audio_request.FILES.get('audio')
-    
-    audio = audio_to_text.RecognitionAudio(content=audio_file.read())
 
-    cliente.recognize(config=configuracao, audio=audio)
+    # Salva temporariamente o arquivo de áudio para enviar ao Azure
+    temp_audio_path = '/tmp/temp_audio.wav'
+    with open(temp_audio_path, 'wb') as f:
+        f.write(audio_file.read())
+
+    speech_config = speechsdk.SpeechConfig(
+        subscription="a4e4f56892dd4c78bd760a1f3f316c8d",
+        region="eastus"
+    )
+    audio_input = speechsdk.audio.AudioConfig(filename=temp_audio_path)
+    speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_input)
+
+    # Executa a transcrição
+    result = speech_recognizer.recognize_once()
+
+    # Apaga o arquivo temporário após a transcrição
+    os.remove(temp_audio_path)
+
+    # Verifica o resultado
+    if result.reason == speechsdk.ResultReason.RecognizedSpeech:
+        transcription = result.text
+    elif result.reason == speechsdk.ResultReason.NoMatch:
+        transcription = "Nenhuma fala foi reconhecida."
+    elif result.reason == speechsdk.ResultReason.Canceled:
+        cancellation_details = result.cancellation_details
+        transcription = f"Transcrição cancelada: {cancellation_details.reason}"
+        if cancellation_details.reason == speechsdk.CancellationReason.Error:
+            transcription += f"\nErro: {cancellation_details.error_details}"
+
+    return Response({"transcription": transcription}, status=status.HTTP_200_OK)
