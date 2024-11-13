@@ -4,8 +4,14 @@ import re
 import zipfile
 import PyPDF2
 import google.generativeai as genai
+from dotenv import load_dotenv
+import os
 
-genai.configure(api_key="AIzaSyBxZBIadZJtaEmkRF5EqkEut2txkQQvLS8")
+load_dotenv(dotenv_path='.env.dev')
+
+api_key = os.getenv('API_GEMINI')
+
+genai.configure(api_key=api_key)
 
 def extrair_texto_pdf(request, pdf_file):
         # Usando PyPDF2 para extrair o texto do PDF
