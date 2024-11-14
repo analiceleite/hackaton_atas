@@ -5,6 +5,9 @@ import zipfile
 import PyPDF2
 import google.generativeai as genai
 from dotenv import load_dotenv
+from pydub import AudioSegment
+import speech_recognition as sr
+import soundfile as sf
 import os
 
 load_dotenv(dotenv_path='.env.dev')
@@ -16,18 +19,17 @@ api_key_gemini = os.getenv('API_GEMINI')
 genai.configure(api_key=api_key_gemini)
 
 def extrair_texto_pdf(request, pdf_file):
-        # Usando PyPDF2 para extrair o texto do PDF
-        try:
-            pdf_reader = PyPDF2.PdfReader(pdf_file)
-            text = ""
-            for page in pdf_reader.pages:
-                text += page.extract_text() or ""  # Em caso de falha na extração, continua
-            return text
-        except Exception as e:
-            print(f"Error reading PDF: {e}")
-            return None
-        
-def retornar_lista_nomes(request, pdf_text):
+    try:
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text() or ""
+        return text
+    except Exception as e:
+        print(f"Error reading PDF: {e}")
+        return None
+
+def retornar_lista_nomes(pdf_text):
     model = genai.GenerativeModel("gemini-1.5-flash")
     prompt = (
         f"In Portuguese, make a dictionary in Python format with all the names of people mentioned "
@@ -37,8 +39,6 @@ def retornar_lista_nomes(request, pdf_text):
     response = model.generate_content(prompt)
     print(response.text)
     return tratar_lista_nome(response.text)
-
-# def retornar_lista_feedback(request,lista_nomes):
 
 def tratar_lista_nome(text):
     try:
@@ -59,28 +59,64 @@ def tratar_lista_nome(text):
         print(f"Erro ao processar a resposta: {e}")
         return {}
 
-def extrair_arquivos_zip(request, zip_file):
+def extrair_arquivos_zip(request, zip_file, save_path='path/audios/raw'):
     with zipfile.ZipFile(BytesIO(zip_file.read())) as zf:
         extracted_files = []
-        
+
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+
         for file_name in zf.namelist():
-            
-            extracted_path = request.save_file(zf, file_name)
-            
-            extracted_files.append(file_name)
-        
+            # Se o arquivo não for um diretório (diretórios terminam com '/')
+            if not file_name.endswith('/'):
+                extracted_path = os.path.join(save_path, file_name)  # Caminho completo do arquivo
+
+                # Salva o arquivo extraído localmente
+                with open(extracted_path, 'wb') as f:
+                    f.write(zf.read(file_name))  # Lê o conteúdo do arquivo no ZIP e escreve no arquivo local
+
+                extracted_files.append(extracted_path)  # Adiciona o caminho do arquivo extraído à lista
+
         return extracted_files
+
+def convert_audio(audio_file, save_path='path/audios/waves/'):
+    if not os.path.exists(save_path):
+            os.makedirs(save_path)
     
-import azure.cognitiveservices.speech as speechsdk
+    print(f"Iniciando conversão de: {audio_file}")
 
-# import google.cloud as speechsdk
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
+    try:
+        # Cria a pasta de destino se não existir
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
 
-def trancrever_audio(request, audio_request):
+        # Lê o áudio original (exemplo: MP3 ou outro formato suportado)
+        audio_data, samplerate = sf.read(audio_file)
+        base_name = os.path.basename(audio_file)
+        output_path = os.path.join(save_path, os.path.splitext(base_name)[0] + '.wav')  # Define o caminho de saída
 
-    audio_file = audio_request.FILES.get('audio')
+        # Salva o áudio convertido para o formato WAV
+        sf.write(output_path, audio_data, samplerate, format='WAV')  
+        print(f"Áudio convertido e salvo em: {output_path}")
+
+        return output_path
+    except Exception as e:
+        print(f"Erro na conversão do áudio {audio_file}: {e}")
+        return None
+
+def transpose_audio_for_text(audio_file):
+    print("afdashgfagsdhas")
+    recognizer = sr.Recognizer()
+    try:
+        with sr.AudioFile(audio_file) as source:
+            audio_data = recognizer.record(source)
+        transcription = recognizer.recognize_google(audio_data, language="pt-BR")
+        print(transcription)
+        return transcription
+    except sr.UnknownValueError:
+        return 'Não foi possível entender o áudio.'
+    except sr.RequestError as e:
+        return f'Erro no serviço de reconhecimento de voz: {e}'
 
     # Salva temporariamente o arquivo de áudio para enviar ao Azure
     temp_audio_path = '/tmp/temp_audio.wav'
@@ -100,15 +136,6 @@ def trancrever_audio(request, audio_request):
     # Apaga o arquivo temporário após a transcrição
     os.remove(temp_audio_path)
 
-    # Verifica o resultado
-    if result.reason == speechsdk.ResultReason.RecognizedSpeech:
-        transcription = result.text
-    elif result.reason == speechsdk.ResultReason.NoMatch:
-        transcription = "Nenhuma fala foi reconhecida."
-    elif result.reason == speechsdk.ResultReason.Canceled:
-        cancellation_details = result.cancellation_details
-        transcription = f"Transcrição cancelada: {cancellation_details.reason}"
-        if cancellation_details.reason == speechsdk.CancellationReason.Error:
-            transcription += f"\nErro: {cancellation_details.error_details}"
-
-    return Response({"transcription": transcription}, status=status.HTTP_200_OK)
+    purchase_has_been_completed = json_data['compra_executada']
+    payment_method = json_data['metodo_pagamento']
+    return purchase_has_been_completed, payment_method
