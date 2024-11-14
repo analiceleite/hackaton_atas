@@ -17,10 +17,10 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-
 from arquivos.urls import router as arquivos_router
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path('api/v1/arquivos/',include(arquivos_router.urls))
+    path('api/v1/arquivos/',include(arquivos_router.urls)),
+    path('api/v1/recognition/', include('recognition.urls'))
 ]
