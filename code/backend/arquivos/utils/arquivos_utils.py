@@ -8,6 +8,10 @@ from dotenv import load_dotenv
 from pydub import AudioSegment
 import speech_recognition as sr
 import os
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+
+base_path = os.path.join('.\\media\\audios')
 
 load_dotenv(dotenv_path='.env.dev')
 
@@ -15,7 +19,7 @@ api_key = os.getenv('API_GEMINI')
 
 genai.configure(api_key=api_key)
 
-def extrair_texto_pdf(request, pdf_file):
+def extrair_texto_pdf(pdf_file):
         try:
             pdf_reader = PyPDF2.PdfReader(pdf_file)
             text = ""
@@ -30,12 +34,8 @@ def retornar_lista_nomes(pdf_text):
     model = genai.GenerativeModel("gemini-1.5-flash")
     prompt = (f"De acordo com o texto seguinte, me retorne o nome dos atendentes mencionados separados por vírgula: {pdf_text}")
     response = model.generate_content(prompt)
-    print(f"Nome dos atendentes: {response.text}")
     return tratar_lista_nome(response.text)
-
-# def retornar_lista_feedback(request,lista_nomes):
-    
-   
+      
 def tratar_lista_nome(text):
     nomes_lista = [nome.strip() for nome in text.split(",")]
     return nomes_lista
@@ -46,12 +46,17 @@ def extrair_arquivos_zip(request, zip_file):
         
         for file_name in zf.namelist():
             
-            extracted_path = request.save_file(zf, file_name)
+            file_data = zf.read(file_name)
+
+            file_path = os.path.join(base_path, file_name)
+
+            default_storage.save(file_path, ContentFile(file_data))
             
             extracted_files.append(file_name)
         
         return extracted_files
     
+
 
 def convert_audio(audio_file):
     audio = AudioSegment.from_file(audio_file)

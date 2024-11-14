@@ -17,16 +17,23 @@ class ArquivosViewSets(viewsets.ViewSet):
             serializer = self.serializer_class(data=request.data)
             
             if serializer.is_valid():
+
                 if not validar_tipo_dado(serializer):
                     return Response({'message': 'invalid format!'}, status= status.HTTP_400_BAD_REQUEST)
                 
                 ata_file = request.FILES['ata_file']
+                audio_zip = request.FILES['audio_file']
                                   
                 if ata_file.content_type == 'application/pdf':
-                    pdf_text = extrair_texto_pdf(request,ata_file)
+                    pdf_text = extrair_texto_pdf(ata_file)
                                         
                     names = retornar_lista_nomes(pdf_text)
-                    print(f"Nome dos atendentes: {names}")
+                    
+                    audios = extrair_arquivos_zip(request, audio_zip)
+                    
+                    
+
+
                     return Response({"names": names}, status=status.HTTP_200_OK)
             
             return Response({'message': 'null fields!'}, status=status.HTTP_400_BAD_REQUEST)
