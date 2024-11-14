@@ -5,6 +5,8 @@ import zipfile
 import PyPDF2
 import google.generativeai as genai
 from dotenv import load_dotenv
+from pydub import AudioSegment
+import speech_recognition as sr
 import os
 
 load_dotenv(dotenv_path='.env.dev')
@@ -49,4 +51,64 @@ def extrair_arquivos_zip(request, zip_file):
             extracted_files.append(file_name)
         
         return extracted_files
+    
+
+def convert_audio(audio_file):
+    audio = AudioSegment.from_file(audio_file)
+    wav_io = BytesIO()
+    audio.export(wav_io, format="wav")
+    wav_io.seek(0)
+    return wav_io
+
+
+def transpose_audio_for_text(audio_file):
+    recognizer = sr.Recognizer()
+   
+    try:
+        audio_segment = AudioSegment.from_file(audio_file, format="wav")
+        wav_audio = BytesIO()
+        audio_segment.export(wav_audio, format="wav")
+        wav_audio.seek(0)
+ 
+        with sr.AudioFile(wav_audio) as source:
+            audio_data = recognizer.record(source)
+   
+        transcription = recognizer.recognize_google(audio_data, language="pt-BR")
+        return transcription
+   
+    except sr.UnknownValueError:
+        return 'Não foi possível entender o áudio.'
+    except sr.RequestError as e:
+        return f'Erro no serviço de reconhecimento de voz: {e}'
+    
+
+def extract_datas_from_audio(msg):
+    purchase_has_been_completed = False
+    payment_method = ''
+
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    prompt = f"""
+    Em português, analise a seguinte transcrição de chamada telefônica e identifique o método de pagamento e se a compra foi executada. 
+    Responda apenas no formato JSON, sem explicações, apenas o dicionário. 
+    Aqui está o texto a ser analisado:
+    {msg}
+    Resposta apenas em formato JSON:
+    """
+
+    response = model.generate_content(prompt)
+    start = response.text.find("{")
+    end = response.text.rfind("}") + 1
+    response_formated = response.text[start:end]
+
+    print(response_formated)
+    json_data = json.loads(response_formated)
+    print("="*30)
+    print(json_data)
+
+    purchase_has_been_completed = json_data['compra_executada']
+    payment_method = json_data['metodo_pagamento']
+    return purchase_has_been_completed, payment_method
+        
+    
+
     

@@ -1,11 +1,10 @@
-from django.shortcuts import render
 from rest_framework import status,viewsets
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from ..serializers.arquivos_serializer import InputFilesSerializer
 from ..utils.validations import validar_tipo_dado
-from ..utils.arquivos_utils import extrair_texto_pdf, retornar_lista_nomes, extrair_arquivos_zip
+from ..utils.arquivos_utils import extrair_texto_pdf, retornar_lista_nomes, extrair_arquivos_zip, convert_audio, transpose_audio_for_text, extract_datas_from_audio
 
 
 class ArquivosViewSets(viewsets.ViewSet):
@@ -13,7 +12,7 @@ class ArquivosViewSets(viewsets.ViewSet):
     permission_classes = [AllowAny]
     
     def create(self, request):
-        pdf_text = None          
+        pdf_text = None
         try:
             serializer = self.serializer_class(data=request.data)
             
