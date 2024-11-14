@@ -7,17 +7,12 @@ import { login } from "../../../api/login_api";
 import * as S from '../styles';
 
 const Form = () => {
-    //* Password visibility functions
-    const [passwordVisible, setPasswordVisible] = useState(false);
-
     //* Popup Settings 
     const [popupOpen, setPopupOpen] = useState(false);
     const [popupMessage, setPopupMessage] = useState('');
     const [popupType, setPopupType] = useState('');
 
     //* Fields state
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
@@ -27,18 +22,10 @@ const Form = () => {
         setIsLoading(true);
     
         try {
-            const data = await login(email, password);
-
-            if (data.access && data.refresh) {
+            const data = await login();
+            console.log(data)
+            if (data.face_detected) {
                 localStorage.setItem('user_token', data.access);
-                localStorage.setItem('user_refresh_token', data.refresh);
-                console.log("Tokens armazenados:", {
-                    access: localStorage.getItem('user_token'),
-                    refresh: localStorage.getItem('user_refresh_token')
-                });
-
-                setEmail('');
-                setPassword('');
                 navigate('/import');
             } else {
                 console.error("Tokens não recebidos na resposta do login.");
@@ -47,9 +34,6 @@ const Form = () => {
             setPopupMessage('Um erro ocorreu. Credenciais incorretas.');
             setPopupType('error');
             setPopupOpen(true);
-    
-            setEmail('');
-            setPassword('');
         } finally {
             setIsLoading(false);
         }
