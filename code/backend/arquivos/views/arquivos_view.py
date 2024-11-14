@@ -29,8 +29,6 @@ class ArquivosViewSets(viewsets.ViewSet):
                     pdf_text = extrair_texto_pdf(request,ata_file)
                     names = retornar_lista_nomes(request,pdf_text)
 
-                    print(names)
-
                 audio_file = request.FILES['audio_file']
 
                 audio_convert = convert_audio(audio_file)
@@ -38,8 +36,19 @@ class ArquivosViewSets(viewsets.ViewSet):
 
                 purchase_has_been_completed, payment_method = extract_datas_from_audio(audio_transcription)
 
-                if audio_file.content_type == 'application/zip' or audio_file.content_type == 'application/x-zip-compressed':
-                    audio_list = extrair_arquivos_zip(audio_file)
+                for name in names.keys():
+                    if name == "Amanda":
+                        my_name = name
+
+                calls = {
+                    "nome" : my_name,
+                    "avaliação_atendimento" : names[my_name],
+                    "metodo_de_pagamento" : payment_method,
+                    "finalizada" : purchase_has_been_completed
+                }
+
+                # if audio_file.content_type == 'application/zip' or audio_file.content_type == 'application/x-zip-compressed':
+                #     audio_list = extrair_arquivos_zip(audio_file)
 
                 # [
                 #     {
@@ -52,9 +61,8 @@ class ArquivosViewSets(viewsets.ViewSet):
                 #     }
                 # ]
 
+                return Response({"calls":calls}, status=status.HTTP_200_OK)
 
-
-                return Response({"names": names, "calls":calls}, status=status.HTTP_200_OK)
             return Response({'message': 'null fields!'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(e)
