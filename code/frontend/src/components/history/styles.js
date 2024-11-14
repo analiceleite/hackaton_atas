@@ -7,8 +7,6 @@ export const HistoryContainer = styled.div`
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
 `;
 
 // Title of the History section
@@ -32,17 +30,15 @@ export const NameList = styled.ul`
 // Styled list items with hover effect
 export const NameItem = styled.li`
   background-color: #fff;
-  padding: 10px 15px;
-  margin: 5px 0;
+  margin: 5px 15px;
   border-radius: 8px;
-  border: 1px solid #ddd;
   font-size: 16px;
   color: #333;
   transition: background-color 0.3s ease, transform 0.3s ease;
 
   &:hover {
     background-color: #e1f5fe;
-    transform: scale(1.02);
+    transform: scale(1.005);
   }
 `;
 
@@ -52,3 +48,38 @@ export const StatusText = styled.p`
   color: #666;
   margin-top: 10px;
 `;
+
+export const TableContainer = styled.div`
+    width: 100%;
+    margin: 20px auto;
+    background-color: #232625;
+    border-radius: 8px;
+    overflow: hidden;
+`;
+
+export const TableWrapper = styled.div`
+    overflow-y: auto; 
+`;
+
+export const TableRow = styled.div`
+    width: 100%;
+    display: flex;
+    justify-content: center;
+`;
+
+export const TableCell = styled.div`
+    padding: 12px;
+    width: 16.6%;
+    display: flex;
+    justify-content: center;
+`;
+
+export const HeaderTable = styled.div`
+  margin: 5px 15px;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #333;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  background-color: #05A6CB;
+  color: white;
+`

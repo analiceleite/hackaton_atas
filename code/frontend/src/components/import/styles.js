@@ -28,15 +28,15 @@ export const Title = styled.h1`
 // Wrapper for the form and history components
 export const FormWrapper = styled.div`
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 20px;
   width: 80%;
   max-width: 1200px;
-  margin-top: 20px;
 `;
 
 // Form container for file upload (occupies 30% of the width)
 export const FormContainer = styled.div`
-  width: 50%;
+  width: 100%;
   padding: 20px;
   background-color: #fff;
   border-radius: 8px;
@@ -46,7 +46,7 @@ export const FormContainer = styled.div`
 
 // History container for the extracted data (on the right)
 export const HistoryContainer = styled.div`
-  width: 65%;
+  width: 100%;
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;
@@ -56,12 +56,11 @@ export const HistoryContainer = styled.div`
 // Form styles
 export const Form = styled.form`
   display: flex;
-  flex-direction: column;
+  gap: 20px;
   align-items: center;
 `;
 
 export const FormGroup = styled.div`
-  margin-bottom: 15px;
   width: 100%;
 `;
 

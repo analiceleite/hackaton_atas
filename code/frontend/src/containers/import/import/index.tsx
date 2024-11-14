@@ -7,7 +7,6 @@ import * as S from './styles'
 export const ImportContainer = () => {
     return (
         <>
-        <Sidebar/>
         <Supergraphic />
         <S.ImportContainer>
             <ImportForm />
