@@ -4,16 +4,12 @@ import re
 import zipfile
 import PyPDF2
 import google.generativeai as genai
-from dotenv import load_dotenv
 from pydub import AudioSegment
+from io import BytesIO
 import speech_recognition as sr
-import os
 
-load_dotenv(dotenv_path='.env.dev')
 
-api_key = os.getenv('API_GEMINI')
-
-genai.configure(api_key=api_key)
+genai.configure(api_key="AIzaSyCiQYMK4tZBmUadg4Sq-zXBxOcbajn7vaE")
 
 def extrair_texto_pdf(request, pdf_file):
         try:
@@ -101,12 +97,12 @@ def extract_datas_from_audio(msg):
     response_formated = response.text[start:end]
 
     print(response_formated)
-    json_data = json.loads(response_formated)
+    json_data = json.dumps(response_formated)
     print("="*30)
     print(json_data)
 
-    purchase_has_been_completed = json_data['compra_executada']
-    payment_method = json_data['metodo_pagamento']
+    # print(f"purchase_has_been_completed: {purchase_has_been_completed}")
+    # print(f"payment_method: {payment_method}")
     return purchase_has_been_completed, payment_method
         
     
