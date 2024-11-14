@@ -4,6 +4,7 @@ import { ProcessData } from '../../api/ata_api';
 import * as S from './styles';
 import Popup from "../global/popup/index";
 import HistoryForm from '../history/index'; // Importe o HistoryForm
+import { form } from '../../api/login_api';
 
 const ImportForm = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,7 +16,7 @@ const ImportForm = () => {
     audio: null,
   });
 
-  const [namesList, setNamesList] = useState([]);  
+  const [namesList, setNamesList] = useState([]);
   const [status, setStatus] = useState('');
 
   const handleFileChange = (e) => {
@@ -28,12 +29,12 @@ const ImportForm = () => {
     setIsLoading(true);
 
     try {
-      const response = await ProcessData(files.ata, files.audio);
-      console.log('Response Status:', response.status); 
+      console.log(files.ata, files.audio);
+      const response = await form(files.ata, files.audio);
 
       if (response.status === 200) {
-        setNamesList(Object.entries(response.data.names)); // Armazena os nomes extraídos
-        setStatus(response.data.status); // Armazena o status da chamada
+        // Atualiza corretamente os dados do namesList
+        setNamesList(response.data.calls);
         setFiles({ ata: null, audio: null });
         setPopupMessage("Dados enviados com sucesso! Verifique o histórico para visualizar o log.");
         setPopupType("success");
@@ -50,13 +51,14 @@ const ImportForm = () => {
     }
   };
 
+
   const planilhas = [
     { name: "ata", label: "Ata", accept: '.pdf' },
     { name: "audio", label: "Pasta de Áudios", accept: '.zip' },
   ];
 
   // Passa os dados para o HistoryForm
-  const uploadData = { namesList, status };
+  const uploadData = { namesList };
 
   return (
     <S.Container>
@@ -70,9 +72,9 @@ const ImportForm = () => {
           footer={popupType}
         />
       </S.PopupWrapper>
-      
+
       <S.Title>Upload de Arquivos</S.Title>
-      
+
       <S.FormWrapper>
         <S.FormContainer>
           <S.Form onSubmit={handleSubmit}>
@@ -100,7 +102,7 @@ const ImportForm = () => {
           </S.Form>
         </S.FormContainer>
 
-        <HistoryForm uploadData={uploadData} />
+        <HistoryForm namesList={namesList} />
       </S.FormWrapper>
     </S.Container>
   );

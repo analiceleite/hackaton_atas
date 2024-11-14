@@ -25,7 +25,7 @@ const Form = () => {
             const data = await login();
             console.log(data)
             if (data.face_detected) {
-                localStorage.setItem('user_token', data.access);
+                localStorage.setItem('user_token', data.face_detected);
                 navigate('/import');
             } else {
                 console.error("Tokens não recebidos na resposta do login.");

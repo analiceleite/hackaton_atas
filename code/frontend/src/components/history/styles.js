@@ -15,6 +15,7 @@ export const HistoryTitle = styled.h1`
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 15px;
+  margin-left: 14px;
 `;
 
 // Styled list for names
@@ -25,6 +26,9 @@ export const NameList = styled.ul`
   max-height: 300px; /* Define the maximum height */
   overflow-y: auto; /* Enable vertical scroll when content overflows */
   overflow-x: hidden; /* Disable horizontal scroll */
+  p{
+    margin-left: 14px;
+  }
 `;
 
 // Styled list items with hover effect
@@ -68,8 +72,8 @@ export const TableRow = styled.div`
 `;
 
 export const TableCell = styled.div`
-    padding: 12px;
-    width: 16.6%;
+    padding-block: 12px;
+    width: 20.6%;
     display: flex;
     justify-content: center;
 `;

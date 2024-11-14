@@ -19,3 +19,24 @@ export const login = async (email, password) => {
         throw error;
     }
 };
+
+export const form = async (ata_file, audios_file) => {
+    try {
+        const formData = new FormData();
+        formData.append("ata_file", ata_file);
+        formData.append("audio_file", audios_file);
+        
+        const response = await axios.post(`${API_BASE_URL}/api/v1/arquivos/form/`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data', // Embora o axios defina automaticamente, é bom garantir
+            }
+        });
+        
+        console.log(response);
+        return response
+        
+    } catch (error) {
+        console.error("Erro ao processar dados no axios:", error.response?.data || error.message);
+        throw error;
+    }
+};
